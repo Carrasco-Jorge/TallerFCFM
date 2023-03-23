@@ -15,7 +15,7 @@ def viz_images(ds):
 
     ax[1][i].imshow(mask_batch[i].numpy().astype("float32"),vmin=0,vmax=1,cmap='gray')
     ax[1][i].axis("off")
-  plt.suptitle('Imágenes vs Máscaras')
+  plt.suptitle('Imágenes vs Máscaras', fontsize=20)
   plt.show()
   plt.close('all')
 
@@ -44,21 +44,21 @@ def viz_predictions(model, ds, num_samples=3):
       fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(10, 5))
       ax[0].imshow(tf.image.resize(img[counter], config.get("mask_shape")))
       ax[0].set_title('Imagen')
-	ax[0].axis("off")
+      ax[0].axis("off")
 
       ax[1].imshow(msk[counter], cmap='Blues',vmin=0.0,vmax=1.0)
       ax[1].set_title('Máscara')
-	ax[1].axis("off")
+      ax[1].axis("off")
 
       ax[2].imshow(y_pred[counter], cmap='Reds',vmin=0.0,vmax=1.0)
       ax[2].set_title('Predicción')
-	ax[2].axis("off")
+      ax[2].axis("off")
 
       ax[3].imshow(tf.math.round(y_pred[counter]), cmap='Reds',vmin=0.0,vmax=1.0)
       ax[3].set_title('Predicción binarizada')
-	ax[3].axis("off")
+      ax[3].axis("off")
 
       plt.show()
-	plt.close('all')
+      plt.close('all')
 
     break
