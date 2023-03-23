@@ -1,42 +1,16 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
 import numpy as np
-from configuration import get_config
+from .configuration import get_config
 from pathlib import Path
 import imghdr
 import random
 from glob import glob
 
-def get_bad_images(path):
-  bad_img_paths = []
-  bad_msk_paths = []
-
-  data_dir = path
-  image_extensions = [".png"]
-
-  img_type_accepted_by_tf = ["bmp", "gif", "jpeg", "png"]
-  for filepath in Path(data_dir).rglob("*"):
-      if filepath.suffix.lower() in image_extensions:
-          img_type = imghdr.what(filepath)
-          if img_type is None:
-            bad_img_paths.append('/'.join(filepath.split('/')[:-1]))
-            bad_msk_paths.append(filepath.__str__().replace('images','masks'))
-          elif img_type not in img_type_accepted_by_tf:
-            bad_img_paths.append(filepath.__str__())
-            bad_msk_paths.append(filepath.__str__().replace('images','masks'))
-
-  return bad_img_paths, bad_msk_paths
-
 def get_filepaths():
   config = get_config()
-  images = glob('./data/all_images/images/*.png')
-  masks = glob('./data/all_masks/masks/*.png')
-
-  bad_img_paths, bad_msk_paths = get_bad_images('./data/all_images/images')
-
-  # Remove bad paths
-  images = sorted(list(set(images).difference(bad_img_paths)))
-  masks = sorted(list(set(masks).difference(bad_msk_paths)))
+  images = glob('../data/images/*.png')
+  masks = glob('../data/masks/*.png')
 
   num_samples = len(images)
 

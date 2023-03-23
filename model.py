@@ -1,8 +1,8 @@
 import tensroflow as tf
-from configuration import get_config
-from metrics import dice_coef
-from loss import BceDiceLoss
-from utils import Timer
+from .configuration import get_config
+from .metrics import dice_coef
+from .loss import BceDiceLoss
+from .utils import Timer
 
 def init_model(model):
   config = get_config

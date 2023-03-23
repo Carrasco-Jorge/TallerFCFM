@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from metrics import dice_coef
+from .metrics import dice_coef
 
 class BceDiceLoss(tf.keras.losses.Loss):
   def __init__(self, weights=[0.5,0.5]):

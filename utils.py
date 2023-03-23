@@ -1,4 +1,4 @@
-from configuration import get_config
+from .configuration import get_config
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
