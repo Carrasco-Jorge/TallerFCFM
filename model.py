@@ -1,4 +1,4 @@
-import tensroflow as tf
+import tensorflow as tf
 from .configuration import get_config
 from .metrics import dice_coef
 from .loss import BceDiceLoss
