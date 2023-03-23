@@ -3,9 +3,10 @@ from .configuration import get_config
 from .metrics import dice_coef
 from .loss import BceDiceLoss
 from .utils import Timer
+from .callbacks import get_callbacks
 
 def init_model(model):
-  config = get_config
+  config = get_config()
   model.compile(
       optimizer=config.get('opt')(learning_rate=config.get('lr')),
       # loss='binary_crossentropy',
@@ -22,6 +23,7 @@ def init_model(model):
 
 def run_experiment(model, train, val, test):
   config = get_config()
+  callbacks, name = get_callbacks()
   timer = Timer()
   timer.begin()
   model.fit(
@@ -29,9 +31,11 @@ def run_experiment(model, train, val, test):
       epochs=config.get('epochs'),
       steps_per_epoch=train.size//config.get('batch_size'),
       validation_data=val.data,
-      validation_steps=val.size//config.get('batch_size')
+      validation_steps=val.size//config.get('batch_size'),
+      callbacks=callbacks
   )
   timer.end()
 
   model.evaluate(test.data, steps=test.size)
 
+  return name

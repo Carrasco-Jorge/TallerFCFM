@@ -31,7 +31,7 @@ def viz_predictions(model, ds, num_samples=3):
   config = get_config()
   # Predict
   counter = 1
-  for sample in ds:
+  for sample in ds.data:
     img, msk = sample
     print(img.shape, msk.shape)
     y_pred = model.predict(img,batch_size=config.get('batch_size'))

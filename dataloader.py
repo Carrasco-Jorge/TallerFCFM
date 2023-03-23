@@ -9,8 +9,8 @@ from glob import glob
 
 def get_filepaths():
   config = get_config()
-  images = glob('../data/images/*.png')
-  masks = glob('../data/masks/*.png')
+  images = glob('./data/images/*.png')
+  masks = glob('./data/masks/*.png')
 
   num_samples = len(images)
 
@@ -31,9 +31,9 @@ def get_filepaths():
   test_img = list(images[int(num_samples*val_prc):])
   test_msk = list(masks[int(num_samples*val_prc):])
 
-  print('train:',len(train_img))
+  print('\ntrain:',len(train_img))
   print('val:',len(val_img))
-  print('test:',len(test_img))
+  print('test:',len(test_img),'\n')
 
   return [
     (train_img, train_msk),
