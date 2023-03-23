@@ -23,7 +23,7 @@ def init_model(model):
 
 def run_experiment(model, train, val, test):
   config = get_config()
-  callbacks, name = get_callbacks()
+  callbacks, name = get_callbacks(val)
   timer = Timer()
   timer.begin()
   model.fit(
