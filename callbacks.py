@@ -22,7 +22,7 @@ class PlotBatch(Callback):
   def on_epoch_end(self, epoch, epoch_logs=None):
     # Plot examples
     img, msk = next(iter(self.val.data))
-    pred = self.model.predict(img,batch_size=self.batch_size)
+    pred = self.model.predict(img,batch_size=self.batch_size, verbose=0)
 
     fig, ax = plt.subplots(nrows=3, ncols=self.num_samples, figsize=(4*self.num_samples,12))
     for i in range(self.num_samples):
@@ -47,7 +47,7 @@ class PlotBatch(Callback):
 
 
 class PlotMetrics(Callback):
-  def __init__(self, val, logdir, num_ticks=30):
+  def __init__(self, val, logdir, num_ticks=10):
     self.batch_size = val.size
     self.val = val
     self.val.data = self.val.data.rebatch(self.val.size)
@@ -67,14 +67,14 @@ class PlotMetrics(Callback):
 
     flatten = tf.keras.layers.Flatten()
 
-    for conf in tqdm(conf_levels, total=self.num_ticks):
+    for conf in conf_levels:
       # Get predictions over validation dataset
       #  TP FN
       #  FP TN
       conf_matrix = np.zeros((2,2))
 
       for img, msk in self.val.data:
-        pred = self.model.predict(img)
+        pred = self.model.predict(img, verbose=0)
         # Flatten tensors
         shp = (self.batch_size*256**2)
         msk  = tf.reshape(flatten(msk), shp)
@@ -84,13 +84,15 @@ class PlotMetrics(Callback):
         break
 
       # Compute confusion matrix
-      tp = conf_matrix[0][0]
-      fn = conf_matrix[0][1]
-      fp = conf_matrix[1][0]
-      tn = conf_matrix[1][1]
+      negative = np.sum(conf_matrix[0])
+      positive = np.sum(conf_matrix[1])
+      tn = conf_matrix[0][0] / negative
+      fp = conf_matrix[0][1] / negative
+      fn = conf_matrix[1][0] / positive
+      tp = conf_matrix[1][1] / positive
 
       # Compute metrics
-      acc.append( (tp + tn) / np.sum(conf_matrix) )
+      acc.append( (tp + tn) / (tp + fp + tn + fn + eps) )
       p.append( tp / (tp + fp + eps) )
       r.append( tp / (tp + fn + eps) )
       f1.append( 2*(p[-1] * r[-1]) / (p[-1] + r[-1] + eps) )
@@ -103,10 +105,10 @@ class PlotMetrics(Callback):
     #  Plot acc, p, r, fpr
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(conf_levels, acc, label='Acc')
-    ax.plot(conf_levels, p, label='P')
-    ax.plot(conf_levels, r, label='R')
-    ax.plot(conf_levels, fpr, label='FPR')
+    ax.plot(conf_levels, acc, lw=2, label='Acc')
+    ax.plot(conf_levels, p, lw=2, label='P')
+    ax.plot(conf_levels, r, lw=2, label='R')
+    ax.plot(conf_levels, fpr, lw=2, label='FPR')
     plt.legend()
     plt.title('Métricas de matriz de confusión')
     ax.set_xlim([0,1])
@@ -125,7 +127,7 @@ class PlotMetrics(Callback):
     #  Plot F1 curve
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(conf_levels, f1, label='F1')
+    ax.plot(conf_levels, f1, lw=2, label='F1')
     plt.legend()
     plt.title('Curva F1')
     ax.set_xlim([0,1])
@@ -144,7 +146,7 @@ class PlotMetrics(Callback):
     #  Plot PR curve
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(r, p, label='PR')
+    ax.plot(r, p, lw=2, label='PR')
     plt.legend()
     plt.title('Curva PR')
     ax.set_xlim([0,1])
@@ -163,7 +165,7 @@ class PlotMetrics(Callback):
     #  Plot ROC curve
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(fpr, r, label='ROC')
+    ax.plot(fpr, r, lw=2, label='ROC')
     plt.legend()
     plt.title('Curva ROC')
     ax.set_xlim([0,1])
@@ -181,8 +183,8 @@ class PlotMetrics(Callback):
       tfImage('Curva ROC', plot, step=epoch)
     #  Plot confusion matrix
     fig, ax = plt.subplots(figsize=(10,10))
-
-    ax.imshow(opt_conf_matrix)
+    opt_conf_matrix = np.array([[tn,fp],[fn,tp]])
+    ax.imshow()
     for row in [0,1]:
       for col in [0,1]:
         ax.text(col, row, opt_conf_matrix[row, col], fontsize=20)
@@ -236,9 +238,8 @@ def get_callbacks(val):
     checkpoint, 
     tensorboard, 
     PlotBatch(val,f'./logs/fit/{name}'),
-    PlotMetrics(val,f'./logs/fit/{name}')
+    PlotMetrics(val,f'./logs/fit/{name}',num_ticks=10)
     ], name
-
 
 
 
