@@ -54,20 +54,21 @@ class PlotMetrics(Callback):
     self.num_ticks = num_ticks
     self.file_writer = create_file_writer(logdir)
   
-  def on_epoch_end(self, epoch, epoch_logs=None):
+  def on_train_end(self, epoch_logs=None):
     eps =  0.00001
-    conf_levels = np.linspace(0.001, 0.999, self.num_ticks)
-    max_f1 = 0
-    acc = []
-    p   = []
-    r   = []
-    f1  = []
-    fpr = []
+    lw=5
+    conf_levels = np.linspace(0.0001, 0.9999, self.num_ticks)
+    acc = [0.5]
+    p   = [0.0]
+    r   = [1.0]
+    f1  = [0.0]
+    fpr = [1.0]
     opt_conf_matrix = np.zeros((2,2))
 
     flatten = tf.keras.layers.Flatten()
 
-    for conf in conf_levels:
+    print('\nComputing metrics...')
+    for i,conf in tqdm(enumerate(conf_levels), total=self.num_ticks):
       # Get predictions over validation dataset
       #  TP FN
       #  FP TN
@@ -96,11 +97,18 @@ class PlotMetrics(Callback):
       p.append( (tp + eps) / (tp + fp + eps) )
       r.append( (tp + eps) / (tp + fn + eps) )
       f1.append( (2*(p[-1] * r[-1]) + eps) / (p[-1] + r[-1] + eps) )
-      if f1[-1] > max_f1:
-        max_f1 = f1[-1]
-        opt_conf_matrix = conf_matrix.copy()
+      if i == self.num_ticks//2:
+        opt_conf_matrix =  np.array([[tn,fp],[fn,tp]])
+      
       fpr.append( (fp + eps) / (fp + tn + eps) )
-
+    print('Metrics successfully computed.\n')
+    print('Saving images...')
+    acc.append(0.5)
+    p.append(1.0)
+    r.append(0.0)
+    f1.append(0.0)
+    fpr.append(0.0)
+    conf_levels = [0.0]+list(np.linspace(0.001, 0.999, self.num_ticks))+[1.0]
     # Plot metrics
     #  Plot acc, p, r, fpr
     fig, ax = plt.subplots(figsize=(10,10))
@@ -123,7 +131,7 @@ class PlotMetrics(Callback):
     plot = tf.expand_dims(plot, 0)
 
     with self.file_writer.as_default():
-      tfImage('Métricas mat. conf.', plot, step=epoch)
+      tfImage('Métricas mat. conf.', plot, step=0)
     #  Plot F1 curve
     fig, ax = plt.subplots(figsize=(10,10))
 
@@ -142,7 +150,7 @@ class PlotMetrics(Callback):
     plot = tf.expand_dims(plot, 0)
 
     with self.file_writer.as_default():
-      tfImage('Curva F1', plot, step=epoch)
+      tfImage('Curva F1', plot, step=0)
     #  Plot PR curve
     fig, ax = plt.subplots(figsize=(10,10))
 
@@ -161,7 +169,7 @@ class PlotMetrics(Callback):
     plot = tf.expand_dims(plot, 0)
 
     with self.file_writer.as_default():
-      tfImage('Curva PR', plot, step=epoch)
+      tfImage('Curva PR', plot, step=0)
     #  Plot ROC curve
     fig, ax = plt.subplots(figsize=(10,10))
 
@@ -180,7 +188,7 @@ class PlotMetrics(Callback):
     plot = tf.expand_dims(plot, 0)
 
     with self.file_writer.as_default():
-      tfImage('Curva ROC', plot, step=epoch)
+      tfImage('Curva ROC', plot, step=0)
     #  Plot confusion matrix
     fig, ax = plt.subplots(figsize=(10,10))
     # opt_conf_matrix = np.array([[tn,fp],[fn,tp]])
@@ -199,7 +207,8 @@ class PlotMetrics(Callback):
     plot = tf.expand_dims(plot, 0)
 
     with self.file_writer.as_default():
-      tfImage('Matriz conf.', plot, step=epoch)
+      tfImage('Matriz de confusión conf. 50%', plot, step=0)
+    print('Task finished.')
 
 def get_callbacks(val):
   earlyStopping = EarlyStopping(

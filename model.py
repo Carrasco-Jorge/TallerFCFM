@@ -5,6 +5,9 @@ from .loss import BceDiceLoss
 from .utils import Timer
 from .callbacks import get_callbacks
 
+import absl.logging
+absl.logging.set_verbosity(absl.logging.ERROR)
+
 def init_model(model):
   config = get_config()
   model.compile(
