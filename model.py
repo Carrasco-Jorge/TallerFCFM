@@ -21,21 +21,19 @@ def init_model(model):
 
   return model
 
-def run_experiment(model, train, val, test):
+def run_experiment(model, train, val, test, epochs=5):
   config = get_config()
   callbacks, name = get_callbacks(val)
   timer = Timer()
   timer.begin()
   model.fit(
       train.data,
-      epochs=config.get('epochs'),
+      epochs=epochs,
       steps_per_epoch=train.size//config.get('batch_size'),
       validation_data=val.data,
       validation_steps=val.size//config.get('batch_size'),
       callbacks=callbacks
   )
   timer.end()
-
-  model.evaluate(test.data, steps=test.size)
 
   return name

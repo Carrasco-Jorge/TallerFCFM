@@ -8,8 +8,6 @@ def get_config():
     val_prc=0.9,
     input_shape=(256,256),
     mask_shape=(256,256),
-    class_weight=0.8,
-    epochs = 10,
     batch_size = BATCH_SIZE,
     buffer_size = BATCH_SIZE,
     lr = 0.001,

@@ -56,7 +56,7 @@ class PlotMetrics(Callback):
   
   def on_epoch_end(self, epoch, epoch_logs=None):
     eps =  0.00001
-    conf_levels = np.linspace(0.0, 1.0, self.num_ticks)
+    conf_levels = np.linspace(0.001, 0.999, self.num_ticks)
     max_f1 = 0
     acc = []
     p   = []
@@ -92,23 +92,23 @@ class PlotMetrics(Callback):
       tp = conf_matrix[1][1] / positive
 
       # Compute metrics
-      acc.append( (tp + tn) / (tp + fp + tn + fn + eps) )
-      p.append( tp / (tp + fp + eps) )
-      r.append( tp / (tp + fn + eps) )
-      f1.append( 2*(p[-1] * r[-1]) / (p[-1] + r[-1] + eps) )
+      acc.append( (tp + tn + eps) / (tp + fp + tn + fn + eps) )
+      p.append( (tp + eps) / (tp + fp + eps) )
+      r.append( (tp + eps) / (tp + fn + eps) )
+      f1.append( (2*(p[-1] * r[-1]) + eps) / (p[-1] + r[-1] + eps) )
       if f1[-1] > max_f1:
         max_f1 = f1[-1]
         opt_conf_matrix = conf_matrix.copy()
-      fpr.append( fp / (fp + tn + eps) )
+      fpr.append( (fp + eps) / (fp + tn + eps) )
 
     # Plot metrics
     #  Plot acc, p, r, fpr
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(conf_levels, acc, lw=2, label='Acc')
-    ax.plot(conf_levels, p, lw=2, label='P')
-    ax.plot(conf_levels, r, lw=2, label='R')
-    ax.plot(conf_levels, fpr, lw=2, label='FPR')
+    ax.plot(conf_levels, acc, lw=lw, label='Acc')
+    ax.plot(conf_levels, p, lw=lw, label='P')
+    ax.plot(conf_levels, r, lw=lw, label='R')
+    ax.plot(conf_levels, fpr, lw=lw, label='FPR')
     plt.legend()
     plt.title('Métricas de matriz de confusión')
     ax.set_xlim([0,1])
@@ -127,7 +127,7 @@ class PlotMetrics(Callback):
     #  Plot F1 curve
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(conf_levels, f1, lw=2, label='F1')
+    ax.plot(conf_levels, f1, lw=lw, label='F1')
     plt.legend()
     plt.title('Curva F1')
     ax.set_xlim([0,1])
@@ -146,7 +146,7 @@ class PlotMetrics(Callback):
     #  Plot PR curve
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(r, p, lw=2, label='PR')
+    ax.plot(r, p, lw=lw, label='PR')
     plt.legend()
     plt.title('Curva PR')
     ax.set_xlim([0,1])
@@ -165,7 +165,7 @@ class PlotMetrics(Callback):
     #  Plot ROC curve
     fig, ax = plt.subplots(figsize=(10,10))
 
-    ax.plot(fpr, r, lw=2, label='ROC')
+    ax.plot(fpr, r, lw=lw, label='ROC')
     plt.legend()
     plt.title('Curva ROC')
     ax.set_xlim([0,1])
@@ -183,11 +183,11 @@ class PlotMetrics(Callback):
       tfImage('Curva ROC', plot, step=epoch)
     #  Plot confusion matrix
     fig, ax = plt.subplots(figsize=(10,10))
-    opt_conf_matrix = np.array([[tn,fp],[fn,tp]])
-    ax.imshow()
+    # opt_conf_matrix = np.array([[tn,fp],[fn,tp]])
+    ax.imshow(opt_conf_matrix)
     for row in [0,1]:
       for col in [0,1]:
-        ax.text(col, row, opt_conf_matrix[row, col], fontsize=20)
+        ax.text(col, row, f'{opt_conf_matrix[row, col]:.3f}', fontsize=20)
     plt.title('Matriz de confusión')
     
     buf = io.BytesIO()
@@ -238,7 +238,7 @@ def get_callbacks(val):
     checkpoint, 
     tensorboard, 
     PlotBatch(val,f'./logs/fit/{name}'),
-    PlotMetrics(val,f'./logs/fit/{name}',num_ticks=10)
+    PlotMetrics(val,f'./logs/fit/{name}',num_ticks=20)
     ], name
 
 
